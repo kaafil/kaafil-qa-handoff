@@ -1,0 +1,924 @@
+/*
+ * Sharma Travels Admin — the house style.
+ *
+ * This is a back-office CRM that a Pune software house wrote around 2014 and
+ * has maintained since: dense tables, hairline borders on everything, a
+ * saturated blue masthead, square corners, and a system font stack because
+ * nobody ever budgeted for a webfont licence. It is deliberately not a modern
+ * SaaS look.
+ *
+ * That matters for reasons beyond flavour. Anything you embed here has to live
+ * next to 12px table rows and a #1b4f8a header without either surface
+ * collapsing into the other, and the only honest way to find out whether that
+ * is achievable is to try it against a host that looks nothing like a default.
+ *
+ * Every value below is a --crm-* custom property. They are declared once, on
+ * :root, and nothing in this file hardcodes a colour past that block. If you
+ * want to know what the CRM's palette is in order to match it, this is the
+ * whole answer and there is no second theme file.
+ */
+
+:root {
+  /* --- Brand ------------------------------------------------------------ */
+  --crm-blue: #1b4f8a;
+  --crm-blue-dark: #143c69;
+  --crm-blue-darker: #0f2f53;
+  --crm-blue-light: #2c6cb5;
+  --crm-blue-pale: #e3ecf6;
+  --crm-blue-paler: #f1f6fb;
+
+  /* --- Neutrals --------------------------------------------------------- */
+  --crm-page: #eceff2;
+  --crm-surface: #ffffff;
+  --crm-surface-alt: #f7f8fa;
+  --crm-zebra: #f4f6f8;
+  --crm-hover: #fdf6e3;
+
+  --crm-border: #c3cbd4;
+  --crm-border-strong: #9aa5b1;
+  --crm-border-faint: #dde2e8;
+
+  --crm-ink: #1f2933;
+  --crm-ink-soft: #52606d;
+  --crm-ink-faint: #7b8794;
+  --crm-ink-invert: #ffffff;
+
+  /* --- Status hues ------------------------------------------------------ */
+  --crm-green: #14663b;
+  --crm-green-pale: #dff2e6;
+  --crm-amber: #8a5a00;
+  --crm-amber-pale: #fbf0d3;
+  --crm-red: #9b1c1c;
+  --crm-red-pale: #fbe3e3;
+  --crm-slate: #45525f;
+  --crm-slate-pale: #e6e9ed;
+  --crm-teal: #0f5f68;
+  --crm-teal-pale: #d9eef0;
+
+  /* --- Type ------------------------------------------------------------- */
+  --crm-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+  --crm-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --crm-fs-xs: 10px;
+  --crm-fs-sm: 11px;
+  --crm-fs-base: 12px;
+  --crm-fs-md: 13px;
+  --crm-fs-lg: 15px;
+  --crm-fs-xl: 18px;
+
+  /* --- Rhythm ----------------------------------------------------------- */
+  --crm-row-height: 26px;
+  --crm-gap: 8px;
+  --crm-gap-lg: 14px;
+  --crm-radius: 2px;
+  --crm-nav-width: 188px;
+  --crm-header-height: 46px;
+
+  --crm-shadow: 0 1px 2px rgba(31, 41, 51, 0.14);
+}
+
+/* --- Reset, such as it is ------------------------------------------------ */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--crm-page);
+  color: var(--crm-ink);
+  font-family: var(--crm-font);
+  font-size: var(--crm-fs-base);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--crm-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* --- Application frame --------------------------------------------------- */
+
+.crm-app {
+  display: grid;
+  grid-template-columns: var(--crm-nav-width) 1fr;
+  grid-template-rows: var(--crm-header-height) 1fr;
+  grid-template-areas:
+    "masthead masthead"
+    "nav main";
+  height: 100%;
+}
+
+.crm-masthead {
+  grid-area: masthead;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crm-gap-lg);
+  padding: 0 12px;
+  background: linear-gradient(to bottom, var(--crm-blue-light), var(--crm-blue));
+  border-bottom: 2px solid var(--crm-blue-darker);
+  color: var(--crm-ink-invert);
+}
+
+.crm-masthead__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.crm-masthead__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  align-self: center;
+  background: var(--crm-ink-invert);
+  color: var(--crm-blue);
+  border-radius: var(--crm-radius);
+  font-size: var(--crm-fs-md);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.crm-masthead__name {
+  font-size: var(--crm-fs-lg);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.crm-masthead__sub {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-blue-pale);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.crm-masthead__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--crm-fs-sm);
+}
+
+.crm-masthead__fy {
+  color: var(--crm-blue-pale);
+  border-inline-end: 1px solid rgba(255, 255, 255, 0.28);
+  padding-inline-end: 10px;
+}
+
+.crm-whoami {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.crm-whoami__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--crm-radius);
+  background: var(--crm-blue-darker);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-size: var(--crm-fs-sm);
+  font-weight: 700;
+}
+
+.crm-whoami__name {
+  font-weight: 600;
+}
+
+.crm-whoami__role {
+  display: block;
+  font-size: var(--crm-fs-xs);
+  color: var(--crm-blue-pale);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.crm-signout {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: var(--crm-ink-invert);
+  font: inherit;
+  font-size: var(--crm-fs-sm);
+  padding: 3px 9px;
+  border-radius: var(--crm-radius);
+  cursor: pointer;
+}
+
+.crm-signout:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* --- Left navigation ----------------------------------------------------- */
+
+.crm-nav {
+  grid-area: nav;
+  background: var(--crm-surface);
+  border-inline-end: 1px solid var(--crm-border);
+  padding: 10px 0;
+  overflow-y: auto;
+}
+
+.crm-nav__group {
+  padding: 0 10px;
+  margin-bottom: 4px;
+  font-size: var(--crm-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--crm-ink-faint);
+}
+
+.crm-nav__list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.crm-nav__link {
+  display: block;
+  padding: 5px 10px 5px 16px;
+  color: var(--crm-ink);
+  font-size: var(--crm-fs-md);
+  border-inline-start: 3px solid transparent;
+}
+
+.crm-nav__link:hover {
+  background: var(--crm-blue-paler);
+  text-decoration: none;
+}
+
+.crm-nav__link.is-active {
+  background: var(--crm-blue-pale);
+  border-inline-start-color: var(--crm-blue);
+  font-weight: 600;
+  color: var(--crm-blue-darker);
+}
+
+.crm-nav__footer {
+  padding: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--crm-border-faint);
+  font-size: var(--crm-fs-xs);
+  color: var(--crm-ink-faint);
+  line-height: 1.6;
+}
+
+/* --- Main region --------------------------------------------------------- */
+
+.crm-main {
+  grid-area: main;
+  overflow: auto;
+  padding: 12px 14px 28px;
+}
+
+.crm-pagehead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--crm-gap-lg);
+  margin-bottom: 10px;
+}
+
+.crm-pagehead__title {
+  font-size: var(--crm-fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.crm-pagehead__meta {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-soft);
+  margin-top: 2px;
+}
+
+.crm-crumbs {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-faint);
+  margin-bottom: 6px;
+}
+
+.crm-crumbs span {
+  margin: 0 5px;
+}
+
+/* --- Panels -------------------------------------------------------------- */
+
+.crm-panel {
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+  margin-bottom: 12px;
+}
+
+.crm-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crm-gap);
+  padding: 6px 10px;
+  background: var(--crm-surface-alt);
+  border-bottom: 1px solid var(--crm-border);
+  font-size: var(--crm-fs-md);
+  font-weight: 600;
+}
+
+.crm-panel__count {
+  font-weight: 400;
+  color: var(--crm-ink-faint);
+  font-size: var(--crm-fs-sm);
+}
+
+.crm-panel__body {
+  padding: 10px;
+}
+
+.crm-panel__body--flush {
+  padding: 0;
+}
+
+/* --- Filter bar ---------------------------------------------------------- */
+
+.crm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--crm-gap);
+  padding: 8px 10px;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+  margin-bottom: 10px;
+}
+
+.crm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.crm-field__label {
+  font-size: var(--crm-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--crm-ink-soft);
+}
+
+.crm-input,
+.crm-select {
+  font: inherit;
+  font-size: var(--crm-fs-base);
+  color: var(--crm-ink);
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border-strong);
+  border-radius: var(--crm-radius);
+  padding: 3px 6px;
+  height: 24px;
+  min-width: 150px;
+}
+
+.crm-input:focus,
+.crm-select:focus {
+  outline: 2px solid var(--crm-blue-light);
+  outline-offset: -1px;
+}
+
+.crm-filters__spacer {
+  flex: 1 1 auto;
+}
+
+.crm-filters__result {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-soft);
+  padding-bottom: 4px;
+}
+
+/* --- Buttons — 2014, with a gradient and a real border ------------------- */
+
+.crm-btn {
+  font: inherit;
+  font-size: var(--crm-fs-base);
+  line-height: 1;
+  padding: 5px 11px;
+  height: 24px;
+  border: 1px solid var(--crm-border-strong);
+  border-radius: var(--crm-radius);
+  background: linear-gradient(to bottom, #ffffff, #e7eaee);
+  color: var(--crm-ink);
+  cursor: pointer;
+}
+
+.crm-btn:hover {
+  background: linear-gradient(to bottom, #ffffff, #dadee4);
+}
+
+.crm-btn:active {
+  background: #d2d7dd;
+  box-shadow: inset 0 1px 2px rgba(31, 41, 51, 0.2);
+}
+
+.crm-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.crm-btn--primary {
+  border-color: var(--crm-blue-darker);
+  background: linear-gradient(to bottom, var(--crm-blue-light), var(--crm-blue));
+  color: var(--crm-ink-invert);
+  font-weight: 600;
+}
+
+.crm-btn--primary:hover {
+  background: linear-gradient(to bottom, var(--crm-blue), var(--crm-blue-dark));
+}
+
+.crm-btn--sm {
+  height: 20px;
+  padding: 2px 7px;
+  font-size: var(--crm-fs-sm);
+}
+
+/* --- Tables — the point of the whole product ----------------------------- */
+
+.crm-tablewrap {
+  overflow-x: auto;
+}
+
+.crm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--crm-fs-base);
+}
+
+.crm-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-align: start;
+  font-size: var(--crm-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--crm-ink-soft);
+  background: var(--crm-surface-alt);
+  border-bottom: 1px solid var(--crm-border-strong);
+  border-inline-end: 1px solid var(--crm-border-faint);
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+.crm-table td {
+  padding: 0 7px;
+  height: var(--crm-row-height);
+  border-bottom: 1px solid var(--crm-border-faint);
+  border-inline-end: 1px solid var(--crm-border-faint);
+  vertical-align: middle;
+}
+
+.crm-table tbody tr:nth-child(even) {
+  background: var(--crm-zebra);
+}
+
+.crm-table tbody tr:hover {
+  background: var(--crm-hover);
+}
+
+.crm-table th:last-child,
+.crm-table td:last-child {
+  border-inline-end: none;
+}
+
+.crm-table--fixed {
+  table-layout: fixed;
+}
+
+.crm-num {
+  text-align: end;
+  font-family: var(--crm-font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.crm-mono {
+  font-family: var(--crm-font-mono);
+  font-size: var(--crm-fs-sm);
+  white-space: nowrap;
+}
+
+/* A figure outside a table: lined up digits, but still reading left to right. */
+.crm-figure {
+  font-family: var(--crm-font-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.crm-nowrap {
+  white-space: nowrap;
+}
+
+/*
+ * Free text in a list view is clipped to one line with the full string on the
+ * cell's title. A note that wraps to four lines turns a 26px row into a 90px
+ * one and destroys the density that makes a list of sixty people scannable;
+ * the screens where the whole note has to be read show it in full instead.
+ */
+.crm-clip {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-muted {
+  color: var(--crm-ink-faint);
+}
+
+.crm-due {
+  color: var(--crm-red);
+  font-weight: 600;
+}
+
+.crm-table__empty {
+  padding: 18px 10px;
+  text-align: center;
+  color: var(--crm-ink-faint);
+  font-style: italic;
+}
+
+/* --- Status chips -------------------------------------------------------- */
+
+.crm-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: var(--crm-radius);
+  border: 1px solid currentColor;
+  font-size: var(--crm-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.crm-chip--green {
+  color: var(--crm-green);
+  background: var(--crm-green-pale);
+}
+
+.crm-chip--amber {
+  color: var(--crm-amber);
+  background: var(--crm-amber-pale);
+}
+
+.crm-chip--red {
+  color: var(--crm-red);
+  background: var(--crm-red-pale);
+}
+
+.crm-chip--slate {
+  color: var(--crm-slate);
+  background: var(--crm-slate-pale);
+}
+
+.crm-chip--teal {
+  color: var(--crm-teal);
+  background: var(--crm-teal-pale);
+}
+
+.crm-chip--blue {
+  color: var(--crm-blue-darker);
+  background: var(--crm-blue-pale);
+}
+
+/* --- Tabs ---------------------------------------------------------------- */
+
+.crm-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--crm-border);
+  margin-bottom: 12px;
+}
+
+.crm-tab {
+  font: inherit;
+  font-size: var(--crm-fs-md);
+  padding: 5px 14px;
+  background: var(--crm-surface-alt);
+  border: 1px solid var(--crm-border);
+  border-bottom: none;
+  border-radius: var(--crm-radius) var(--crm-radius) 0 0;
+  color: var(--crm-ink-soft);
+  cursor: pointer;
+  margin-bottom: -1px;
+}
+
+.crm-tab:hover {
+  background: var(--crm-blue-paler);
+}
+
+.crm-tab.is-active {
+  background: var(--crm-surface);
+  border-bottom: 1px solid var(--crm-surface);
+  color: var(--crm-blue-darker);
+  font-weight: 600;
+}
+
+.crm-tab__count {
+  color: var(--crm-ink-faint);
+  font-weight: 400;
+  margin-inline-start: 5px;
+}
+
+.crm-tab.is-active .crm-tab__count {
+  color: var(--crm-ink-soft);
+}
+
+/* --- Definition grids ---------------------------------------------------- */
+
+.crm-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 3px 12px;
+  margin: 0;
+  font-size: var(--crm-fs-base);
+}
+
+.crm-dl dt {
+  color: var(--crm-ink-soft);
+  font-size: var(--crm-fs-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding-top: 1px;
+}
+
+.crm-dl dd {
+  margin: 0;
+}
+
+/* --- Column layouts ------------------------------------------------------ */
+
+.crm-cols {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.crm-cols--2 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.crm-cols--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1080px) {
+  .crm-cols--2,
+  .crm-cols--3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* --- Small stat readouts ------------------------------------------------- */
+
+.crm-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: var(--crm-surface);
+  box-shadow: var(--crm-shadow);
+  margin-bottom: 12px;
+}
+
+.crm-stat {
+  flex: 1 1 120px;
+  padding: 6px 10px;
+  border-inline-end: 1px solid var(--crm-border-faint);
+}
+
+.crm-stat:last-child {
+  border-inline-end: none;
+}
+
+.crm-stat__label {
+  font-size: var(--crm-fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--crm-ink-soft);
+}
+
+.crm-stat__value {
+  font-family: var(--crm-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--crm-fs-lg);
+  font-weight: 600;
+}
+
+/* --- The unused region on the trip page ---------------------------------- */
+
+/*
+ * Every departure has a whole side to it that this CRM has never held: what
+ * happened on the ground, who is rooming with whom, what the leader spent, and
+ * what any of that looked like to the people who paid for it. The desk gets
+ * that over the phone. The box is here because the layout has always had room
+ * for it and never had anything to put in it.
+ */
+.crm-openslot {
+  border: 1px dashed var(--crm-border-strong);
+  border-radius: var(--crm-radius);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--crm-surface-alt),
+    var(--crm-surface-alt) 9px,
+    var(--crm-surface) 9px,
+    var(--crm-surface) 18px
+  );
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 20px;
+  text-align: center;
+  color: var(--crm-ink-faint);
+}
+
+.crm-openslot__title {
+  font-size: var(--crm-fs-md);
+  font-weight: 600;
+  color: var(--crm-ink-soft);
+}
+
+.crm-openslot__note {
+  font-size: var(--crm-fs-sm);
+  max-width: 46ch;
+}
+
+/* --- Login --------------------------------------------------------------- */
+
+.crm-login {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--crm-page);
+}
+
+.crm-login__card {
+  width: 360px;
+  background: var(--crm-surface);
+  border: 1px solid var(--crm-border);
+  border-top: 3px solid var(--crm-blue);
+  border-radius: var(--crm-radius);
+  box-shadow: var(--crm-shadow);
+}
+
+.crm-login__head {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--crm-border-faint);
+}
+
+.crm-login__title {
+  font-size: var(--crm-fs-xl);
+  font-weight: 600;
+}
+
+.crm-login__sub {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-soft);
+  margin-top: 2px;
+}
+
+.crm-login__body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* The sign-in roster — a bordered list of people you click, not a <select>.
+   LoginPage.tsx's own comment has the reason. */
+.crm-login__roster {
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--crm-border-strong);
+  border-radius: var(--crm-radius);
+  background: var(--crm-surface);
+}
+
+.crm-login__roster > legend {
+  padding: 0 4px;
+  margin-inline-start: 6px;
+}
+
+.crm-login__group-head {
+  padding: 3px 8px;
+  background: var(--crm-surface-alt);
+  border-block: 1px solid var(--crm-border-faint);
+  font-size: var(--crm-fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--crm-ink-faint);
+}
+
+.crm-login__group:first-of-type .crm-login__group-head {
+  border-block-start: 0;
+}
+
+.crm-login__person {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: var(--crm-fs-base);
+  cursor: pointer;
+}
+
+.crm-login__person:nth-of-type(even) {
+  background: var(--crm-zebra);
+}
+
+.crm-login__person:hover {
+  background: var(--crm-hover);
+}
+
+/* focus-within, not :focus — the focusable element is the radio inside. */
+.crm-login__person:focus-within {
+  outline: 2px solid var(--crm-blue-light);
+  outline-offset: -2px;
+}
+
+.crm-login__person-detail {
+  margin-inline-start: auto;
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-faint);
+}
+
+.crm-login__note {
+  font-size: var(--crm-fs-sm);
+  color: var(--crm-ink-faint);
+  border-top: 1px dashed var(--crm-border-faint);
+  padding-top: 8px;
+  line-height: 1.5;
+}
+
+.crm-login__version {
+  text-align: center;
+  font-size: var(--crm-fs-xs);
+  color: var(--crm-ink-faint);
+  padding: 6px;
+  background: var(--crm-surface-alt);
+  border-top: 1px solid var(--crm-border-faint);
+}
+
+/* --- Loading and error states -------------------------------------------- */
+
+.crm-note {
+  padding: 14px;
+  border: 1px solid var(--crm-border);
+  border-radius: var(--crm-radius);
+  background: var(--crm-surface);
+  font-size: var(--crm-fs-md);
+  color: var(--crm-ink-soft);
+}
+
+.crm-note--error {
+  border-color: var(--crm-red);
+  background: var(--crm-red-pale);
+  color: var(--crm-red);
+}
+
+.crm-note code {
+  font-family: var(--crm-font-mono);
+  font-size: var(--crm-fs-sm);
+}

@@ -1,0 +1,46 @@
+{
+  "name": "kaafil-qa-handoff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.29.3",
+  "description": "Sharma Travels Admin — a working mock partner CRM you integrate the Kaafil React UI Kit into.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "concurrently --names server,app --prefix-colors cyan,magenta --kill-others-on-fail \"pnpm run dev:server\" \"pnpm run dev:app\"",
+    "dev:server": "tsx --env-file=.env server/index.ts",
+    "dev:app": "vite app",
+    "build": "pnpm run typecheck && vite build app",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p app/tsconfig.json",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "seed:bulk": "tsx --env-file=.env fixtures/bulk.ts",
+    "reset:kaafil": "tsx --env-file=.env tools/reset-kaafil.ts",
+    "milestone": "tsx tools/milestone.ts"
+  },
+  "comment:dev:server": "Deliberately NOT `tsx watch`. Booting this server wipes crm.sqlite, re-seeds it and pushes the whole fixture into your Kaafil tenant; a file-watcher restart would replay that ingest on every keystroke and burn your rate limit. Restart it by hand when you change server code.",
+  "comment:secrets": "KAAFIL_API_KEY is read by `tsx --env-file=.env` in the server/tooling scripts only. `vite app` is started without it, so there is no path by which the key can reach a browser bundle.",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "kaafil-js": "0.1.0-beta.7",
+    "kaafil-react-uikit": "0.1.0-beta.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2",
+    "vite": "^6.0.7"
+  }
+}

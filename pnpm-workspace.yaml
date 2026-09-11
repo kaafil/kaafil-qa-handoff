@@ -1,0 +1,20 @@
+# One package, installed at the root. `packages` is empty on purpose: server/,
+# app/, fixtures/ and tools/ are folders of one program, not separately
+# versioned packages, and giving them their own manifests would only add a
+# second install step to an exercise we are timing.
+#
+# The file still has to exist, because pnpm 10 reads its build-script allowlist
+# from here and nowhere else.
+packages: []
+
+# pnpm 10 does not run a dependency's install scripts unless it is named here.
+#   better-sqlite3 — compiles (or downloads) its native binding in that script;
+#                    without it every `require` of the driver throws at boot.
+#   esbuild        — its postinstall is what puts the platform binary in place,
+#                    and both tsx and vite are unusable without it. The failure
+#                    surfaces as a confusing missing-binary error on first run
+#                    rather than at install time, so this entry is load-bearing
+#                    even though nothing here imports esbuild directly.
+onlyBuiltDependencies:
+  - better-sqlite3
+  - esbuild

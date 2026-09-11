@@ -1,0 +1,246 @@
+# The exercise
+
+Ten milestones. The first four are setup; the last six are the real work. You
+stamp each one as you reach it, and the timings become the report.
+
+```sh
+pnpm milestone 4          # stamp milestone 4, right now
+pnpm milestone report     # print everything, at the end
+```
+
+Stamp honestly and stamp *when it happens*, not in a batch at the end. A
+backfilled log is worth nothing. If you get a milestone wrong, stamp the next
+one anyway and say so in the report.
+
+Everything you need is at **<https://developer.kaafil.in>**, plus the skills and
+docs MCP you installed at step zero. Reading library source code is allowed but
+it is a *finding* — note it.
+
+---
+
+## First: the one thing everybody gets wrong
+
+Kaafil has three browser personas.
+
+| Persona | Who they are | Where they are |
+|---|---|---|
+| **manager** | The tour leader travelling with the group | On a phone, in a valley, with no signal |
+| **agencyAdmin** | The desk executive in the Pune office | On a desktop, on wifi |
+| **share** | A traveller or their family | On a phone, not logged in to anything |
+
+There is **no `persona` prop**. There is no `mode` prop. You cannot tell Kaafil
+which persona to be.
+
+**The shape of the credential you hand the provider decides the persona**, and
+nothing else does:
+
+```tsx
+// staff — manager OR agencyAdmin
+<KaafilUIKitProvider accessToken={...} refreshToken={...} agencyRef={...}>
+
+// traveller
+<KaafilUIKitProvider shareToken={...}>
+
+// either of the above, fetched lazily
+<KaafilUIKitProvider credentialResolver={async () => { /* ... */ }}>
+```
+
+Note that manager and agencyAdmin take the *identical* three fields. The
+difference is inside the token itself — the provider reads it out of the access
+token and configures the whole surface accordingly. So which persona you get is
+decided entirely by **which server endpoint minted the token**, which is decided
+by **which CRM route the browser called**. Trace that chain once, early; it
+makes the rest of the exercise obvious.
+
+This design is deliberate: a persona prop would mean a browser could ask for a
+persona it was not issued, and the capability system would be advisory rather
+than real.
+
+---
+
+## The three surfaces and where their credentials come from
+
+Each persona has exactly one top-level component. You are not expected to
+assemble screens from parts — start with the whole surface and take it apart
+later if you want to.
+
+| Persona | Import | CRM route that mints it | What the server calls |
+|---|---|---|---|
+| agencyAdmin | `KaafilAgencyWorkspace` from `kaafil-react-uikit/admin` | `POST /api/admin-session` | `kaafil.auth.mintAgencyAdminToken({ agencyAdminRef })` |
+| manager | `KaafilManagerApp` from `kaafil-react-uikit/manager` | `POST /api/session` | `kaafil.auth.mintManagerToken({ managerRef })` |
+| share | `KaafilShareView` from `kaafil-react-uikit/traveller` | `POST /api/share-link` | `kaafil.shareTokens.create({ tripRef, travellerRef })` |
+
+Those three paths are declared in `shared/crm-api.ts` as `KAAFIL_API`, and the
+server registers them from that same constant — so import it rather than
+typing a path literal, and a rename can never leave you calling a route that
+does not exist.
+
+Three rules about importing that will save you an hour:
+
+- **There is no bare `kaafil-react-uikit` import.** Only the subpaths:
+  `/core`, `/manager`, `/admin`, `/traveller`, `/styles`, `/testing`. If you
+  write `from 'kaafil-react-uikit'` it will simply not resolve.
+- **`import 'kaafil-react-uikit/styles'` exactly once**, in your app entry. The
+  CSS is opt-in and never injects itself — that is so it cannot fight with the
+  CRM's own stylesheet behind your back.
+- **`/core` is where the provider and all the hooks live.** Every persona uses
+  the same hooks; there is no `useManagerRooming` and no `useAdminRooming`,
+  just `useRooming`.
+
+The CRM already knows who is logged in (`app/src/crm/` has a fake login and a
+staff list). Sharma Travels' tour leaders are `ST-01` … `ST-04`; its desk
+executives are `ST-05` and `ST-06`. Mapping a CRM staff row to the right Kaafil
+session endpoint is your first real design decision.
+
+---
+
+## The ten milestones
+
+### Setup — milestones 1 to 4
+
+These measure the cost of getting to a standing start. They should be fast; if
+one of them is not, that is the most interesting data in the whole exercise.
+
+**1 — Cloned and installed.**
+`pnpm install` finished without you having to fix anything.
+```sh
+pnpm milestone 1
+```
+
+**2 — API key in `.env`.**
+You have created a key in the partner console and pasted it into `.env`.
+Stamp this when the key is *in the file*, not when you first opened the console
+— the gap between those two moments is part of what we are measuring, and you
+should mention it in the report if it was awkward.
+
+**3 — CRM running and seeded.**
+`pnpm dev` boots, the server reports a clean re-seed, and you can browse Sharma
+Travels Admin at <http://localhost:5173>: the trip list has six departures, a
+trip detail page opens, the traveller and staff lists render. Still zero Kaafil
+code.
+
+**4 — Trips visible in Kaafil.**
+The boot ingest completed and you have confirmed it from the *other* side — log
+in to <https://platform.kaafil.in> and see Sharma Travels' six departures,
+their manifests, and their assigned staff in your own tenant. Confirming it in
+the console rather than trusting the server log is the point; you are checking
+that the data actually landed.
+
+### Integration — milestones 5 to 10
+
+**5 — The desk console renders.**
+A route inside the CRM (`app/src/kaafil/` is yours; wire it into the CRM's
+router wherever makes sense) that:
+
+- asks your server for an agencyAdmin session
+- mounts `KaafilAgencyWorkspace` inside `KaafilUIKitProvider`
+- shows the real Sharma Travels trips, not an empty state or an error
+
+Done means: you can open a departure in the desk console and see its manifest.
+
+**6 — The manager surface renders.**
+Same again, but `KaafilManagerApp` with a *manager* session. Pick a tour leader
+who actually has work to do — `ST-02` is on the Spiti departure, which is
+mid-tour. Done means you can see that trip's day and its people.
+
+This surface needs a storage adapter for its offline engine. You supply it from
+the SDK's browser entry:
+
+```tsx
+import { createIndexedDbStorageAdapter } from 'kaafil-js/client';
+```
+
+Done also means you have **no console errors and no console warnings** at
+steady state. A clean console is a product requirement, not a nicety — if you
+cannot get one, that is a bug report.
+
+**7 — A traveller share link opens.**
+Your server mints a share token for a real traveller on a real trip; the
+browser opens `KaafilShareView` with it, unauthenticated, ideally in a private
+window to prove no staff session is involved.
+
+Also try a token for a traveller on the *cancelled* departure
+(`TR-2609-MEGHALAYA`) and one for a trip that has closed out
+(`TR-2608-KERALA`), and note what you see. Then read the share-link section of
+[02-what-to-look-for.md](./02-what-to-look-for.md) — a share link that shows
+nothing may be behaving perfectly, and knowing the difference matters.
+
+**8 — Branded to the CRM's palette.**
+Sharma Travels Admin is corporate blue and grey with tight, dense rows and
+system fonts. Make Kaafil's surfaces belong to it.
+
+Done means the honest screenshot test: put a CRM screen next to a Kaafil screen
+and show them to somebody who has not seen either. If they can point at the
+seam, you are not there yet.
+
+Do this with `--kf-*` token overrides in `@layer kaafil-ui-overrides`, and see
+[02-what-to-look-for.md](./02-what-to-look-for.md) for the twelve tokens that
+should get you most of the way. **If you find yourself writing a selector that
+targets a Kaafil class name to force something, stop and write that down** —
+each one is a gap in the theming system and is exactly the kind of finding this
+exercise exists to produce.
+
+**9 — A slot or a custom panel.**
+Bend the surface, don't just skin it. One of:
+
+- replace a section of the share view with your own rendering, using
+  `renderSection`
+- swap one of a surface's internal components via its `components` prop
+- drop one level down the ladder: stop using the whole surface for one screen,
+  call the `/core` hooks directly, and draw that screen in Sharma Travels'
+  own house style
+
+Done means the CRM shows something Kaafil does not ship, driven by Kaafil's
+data. Note which rung of the ladder you had to drop to, and whether you
+*wanted* to drop that far.
+
+**10 — An offline write survives a reload.**
+The one that matters most. On the manager surface:
+
+1. Open the mid-tour Spiti departure.
+2. Kill the network — DevTools → Network → Offline, or turn wifi off.
+3. Do real work: tick a checklist item, log an expense, change a rooming
+   assignment. Do several things, not one.
+4. **Reload the page, still offline.** Your work must still be there.
+5. Bring the network back. Watch it sync.
+6. Reload once more, online, and confirm the server agrees.
+
+Done means every write survived both reloads and landed server-side. If any
+write is lost at step 4, stop and write that up immediately — it is the highest
+severity bug this product can have, and we want it before you do anything else.
+
+### Finally
+
+```sh
+pnpm milestone report
+```
+
+This prints your timings, the versions you ran against, which plane you were on
+(test or live), and a copy of the debrief template. Fill in the debrief — see
+[03-report-template.md](./03-report-template.md) — and send the whole block
+back privately.
+
+---
+
+## Ground rules
+
+**Do not modify `app/src/crm/`.** Those screens are the existing product you
+are integrating into. Fitting Kaafil around them *is* the test; changing them to
+suit Kaafil is cheating, and it also quietly hides the theming problems we most
+want to find. If you genuinely cannot proceed without touching a CRM file, that
+is a finding — note it, then do the smallest change you can and say what it was.
+
+**All your code goes in `app/src/kaafil/`,** which is empty on purpose, plus the
+one line that wires your route into the CRM's router and the one
+`import 'kaafil-react-uikit/styles'` in the entry file.
+
+**The API key stays on the server.** Session minting always goes through a CRM
+route. If you ever find yourself wanting the key in the browser, you have taken
+a wrong turn — and if the docs led you there, that is a serious finding.
+
+**Restart the server by hand** after server-side changes. Boot re-runs the full
+ingest.
+
+**Get stuck for twenty minutes, then note it and move on.** The note is worth
+more to us than the resolution. Use `pnpm milestone report`'s notes section, a
+scratch file, anything — just capture the time and what you were trying to do.

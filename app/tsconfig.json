@@ -1,0 +1,22 @@
+{
+  // The browser half. Everything under app/src is bundled by Vite and served to
+  // a real browser, so this config — not the root one — is what governs the CRM
+  // screens and whatever you write in src/kaafil/.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    // "vite/client" is what declares import.meta.env. Without it every
+    // `import.meta.env.VITE_*` read is a type error, which is a confusing first
+    // thing to hit when you are wiring the app to the server. "node" stays on
+    // only for vite.config.ts, which runs in Node.
+    "types": ["vite/client", "node"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts",
+    "../fixtures/**/*.ts",
+    "../shared/**/*.ts"
+  ]
+}

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+app/dist/
+
+# The CRM store. Deleted and re-seeded from fixtures/ on every server boot, so
+# it is never worth keeping — and the -wal/-shm siblings appear whenever SQLite
+# is in WAL mode.
+crm.sqlite
+crm.sqlite-wal
+crm.sqlite-shm
+
+# Your API key lives here. .env.example is the one that is committed.
+.env
+.env.local
+
+# The milestone log is your own timing data, not repo content.
+.milestones.json
+
+# Written by `pnpm seed:bulk`, read by the next boot. Regenerating it is one
+# command and the output is byte-identical from the frozen seed, so a ~700 KB
+# generated blob has no business in the history.
+fixtures/bulk.generated.json
+
+*.log
+.DS_Store

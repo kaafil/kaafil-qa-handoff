@@ -1,0 +1,32 @@
+{
+  // The Node half of the repo: server/, fixtures/ and tools/. app/ has its own
+  // tsconfig because it needs DOM + vite/client types this one must not carry —
+  // `document` resolving inside server code would hide a real mistake.
+  //
+  // moduleResolution "bundler" matches what actually executes the code: tsx for
+  // the server, esbuild-inside-Vite for the app. NodeNext would demand explicit
+  // .js extensions on relative imports that neither runner needs.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    // Both runners resolve a relative import with or without its .ts extension,
+    // so neither form should be a type error while you are writing code.
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  },
+  "include": ["server/**/*.ts", "shared/**/*.ts", "fixtures/**/*.ts", "tools/**/*.ts"]
+}
