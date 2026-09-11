@@ -29,7 +29,12 @@
 import type { Kaafil } from 'kaafil-js';
 // Paths come from the shared contract, not literals — the browser reads the
 // same constant, so a rename here cannot leave the client calling a dead route.
-import { KAAFIL_API } from '../../shared/crm-api.js';
+import {
+  type AgencyAdminSessionResponse,
+  KAAFIL_API,
+  type ManagerSessionResponse,
+  type ShareLinkResponse,
+} from '../../shared/crm-api.js';
 import { optionalString, type Route, requireString } from '../http.js';
 
 export interface KaafilRouteDeps {
@@ -47,7 +52,7 @@ export function createKaafilRoutes(deps: KaafilRouteDeps): readonly Route[] {
     {
       method: 'POST',
       pattern: KAAFIL_API.session,
-      async handle({ body }) {
+      async handle({ body }): Promise<ManagerSessionResponse> {
         const managerRef = requireString(body, 'managerRef');
         const session = await kaafil.auth.mintManagerToken({ managerRef });
 
@@ -76,7 +81,7 @@ export function createKaafilRoutes(deps: KaafilRouteDeps): readonly Route[] {
     {
       method: 'POST',
       pattern: KAAFIL_API.adminSession,
-      async handle({ body }) {
+      async handle({ body }): Promise<AgencyAdminSessionResponse> {
         const agencyAdminRef = requireString(body, 'agencyAdminRef');
         const session = await kaafil.auth.mintAgencyAdminToken({ agencyAdminRef });
 
@@ -96,7 +101,7 @@ export function createKaafilRoutes(deps: KaafilRouteDeps): readonly Route[] {
     {
       method: 'POST',
       pattern: KAAFIL_API.shareLink,
-      async handle({ body }) {
+      async handle({ body }): Promise<ShareLinkResponse> {
         const tripRef = requireString(body, 'tripRef');
         // Omit it for a whole-trip family link; pass it to scope the link to
         // one person. The two produce visibly different traveller surfaces,

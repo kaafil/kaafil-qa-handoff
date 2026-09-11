@@ -108,26 +108,67 @@ export interface StaffResponse {
 
 // ── Kaafil route payloads ───────────────────────────────────────────────────
 
-export interface SessionRequest {
-  /** The CRM's own staff id. The server maps it to a Kaafil managerRef. */
-  staffId: string;
+// These declared the wrong field names for every one of the three routes —
+// `staffId` where the server reads `managerRef`, `tourId`/`travellerId` where
+// it reads `tripRef`/`travellerRef`, and a `url` on the share response that
+// the server has never returned. All three typechecked perfectly and all
+// three 400'd at runtime, which is precisely the failure this file's header
+// says it exists to prevent. Declaring a contract is not the same as holding
+// both sides to it: the CRM read routes are type-annotated on their handlers,
+// these three were not, so nothing checked them. They are now.
+
+export interface ManagerSessionRequest {
+  /** Kaafil's manager ref, or your CRM's own id for that person. */
+  managerRef: string;
 }
 
-export interface SessionResponse {
+export interface AgencyAdminSessionRequest {
+  agencyAdminRef: string;
+}
+
+/** What both staff mints return. Hand `accessToken`/`refreshToken`/`agencyRef` to the provider. */
+export interface StaffSessionResponse {
   accessToken: string;
   refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+  expiresAt: string;
+  /** Kaafil's internal agency id — NOT what the provider wants. */
+  agencyId: string;
+  /** Your own ref for the agency. This is the provider's `agencyRef`. */
   agencyRef: string;
+  baseUrl: string;
 }
 
+export interface ManagerSessionResponse extends StaffSessionResponse {
+  managerId: string;
+}
+
+export type AgencyAdminSessionResponse = StaffSessionResponse;
+
 export interface ShareLinkRequest {
-  tourId: string;
+  tripRef: string;
   /** Omit for a whole-trip link not scoped to one traveller. */
-  travellerId?: string;
+  travellerRef?: string;
 }
 
 export interface ShareLinkResponse {
+  id: string;
+  /** The whole credential for the traveller surface — pass as `shareToken`. */
   token: string;
-  url: string;
+  tripId: string;
+  travellerId: string | null;
+  status: string;
+  expiresAt: string;
+  /**
+   * Which sections the traveller may see — a flag per section, not a list of
+   * enabled names. This is the server's own answer about what the link
+   * exposes, and it is why a "missing" section on a share page is a token
+   * configuration question rather than a UI one.
+   */
+  sections: Readonly<Record<string, boolean>>;
+  version: number;
+  baseUrl: string;
 }
 
 /** The shape every route returns on failure. `code` is stable; `message` is not. */
