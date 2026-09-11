@@ -150,6 +150,29 @@ the SDK's browser entry:
 import { createIndexedDbStorageAdapter } from 'kaafil-js/client';
 ```
 
+`KaafilManagerApp` also takes **five required host callbacks**, and it will not
+compile without all five. `KaafilAgencyWorkspace` has none, so the asymmetry is
+invisible until the compiler tells you — here is the list up front, and what
+each one is actually for:
+
+| Prop | Fires when | What a `() => {}` costs you |
+|---|---|---|
+| `onNavigateModule(key)` | a Today card links to `manifest`, `rooming`, `checklist`, `docs` or `closing-day` | the card becomes a dead end — the UIKit ships no router (it never navigates for you), so the host owns every destination |
+| `onCollectFromGroup(groupId)` | a booking group's "Collect" CTA is tapped | same — there is no group-level collect endpoint, so the host resolves a group into whatever per-traveller flow it wants |
+| `onVendorSelect(tripVendorId)` | a vendor row is tapped | same — a dead row |
+| `onLogExpense()` | an expense has **already been written** by the surface's own sheet | only the host's toast/analytics. The write is not yours to do |
+| `onCollectPayment()` | a collection has **already been recorded** | same |
+
+The two money ones read like they gate spending, and they do not: the FAB opens
+the UIKit's own sheet, which writes through `useExpenses()` / `useCollections()`
+and fires the callback *after* the write succeeds. They are completion hooks.
+The first three are the ones where a stub silently breaks a manager's flow, so
+wire those to something real before you judge the surface.
+
+They are required rather than defaulted because each forwards to a child
+composite's own required prop, and the surface will not stub a child's required
+callback behind a no-op on your behalf.
+
 Done also means you have **no console errors and no console warnings** at
 steady state. A clean console is a product requirement, not a nicety — if you
 cannot get one, that is a bug report.
@@ -208,6 +231,81 @@ The one that matters most. On the manager surface:
 Done means every write survived both reloads and landed server-side. If any
 write is lost at step 4, stop and write that up immediately — it is the highest
 severity bug this product can have, and we want it before you do anything else.
+
+**Step 4 has two host-side prerequisites.** Neither is Kaafil's job, both were
+missing from an earlier version of this document, and without them step 4 is
+not merely hard but impossible — so read this before you decide you have found
+a bug.
+
+### One: the app shell
+
+This CRM already has one, and the distinction it marks is worth understanding.
+
+Kaafil makes your **data** survive: the write goes to a durable outbox in
+IndexedDB and the read comes back from the snapshot store, both of which
+outlive a reload. It does nothing about your **application** — the HTML
+document, your JS, your CSS. Those come off the network like any other page.
+So on a kit integration with no service worker, step 4 gets the browser's
+offline error page every time, and the queued writes sit safely in IndexedDB
+behind a document that will not open. The data was never lost; you just cannot
+get to it.
+
+Closing that gap is a service worker, and it belongs to the host, because it
+has to cache **your** build output under **your** deploy and revalidation
+strategy. The kit ships none and registers nothing, deliberately. Sharma
+Travels has one at `app/public/sw.js`, registered from `app/src/main.tsx` —
+read it, it is about sixty lines, and it is the whole of what the kit is
+asking you to own. A real CRM would generate a better one from a config line
+(`vite-plugin-pwa`, `next-pwa`, anything on Workbox).
+
+This is pre-existing CRM infrastructure, like the login screen and the
+stylesheet — not something you have to build. Sharma Travels' own staff-roster
+fetch has a last-known-good fallback for the same reason (`app/src/crm/api.ts`):
+the CRM renders an error page if the roster fetch fails, so without it the app
+stops at "Could not reach the Sharma Travels server" and no route renders at
+all, Kaafil's included.
+
+### Two: a credential that survives the reload
+
+This one IS yours, and it is in `app/src/kaafil/`.
+
+Your session route mints a Kaafil token over the network. Offline, that call
+fails, and the surface never opens — you get your own "could not open" chrome
+with the writes sitting intact in IndexedDB behind it. The kit does not solve
+this for you on purpose: **it never persists a credential**, because where a
+token lives, how long it is kept and what clears it are host security
+decisions, not a design system's.
+
+So cache the minted credential and fall back to it when the mint call cannot
+complete. Roughly thirty lines around your existing resolver. Two things worth
+getting right, and worth saying in your report if they bit you:
+
+- Fall back only when the request **never completed**. A 401 or a 500 from a
+  reachable server is a real failure and must still surface.
+- A cached access token still expires, and offline it cannot be refreshed. A
+  manager who has been offline longer than the token's life will not get in.
+  Note how long that window turned out to be.
+
+### What step 4 actually looks like right now
+
+With both in place: the page reloads offline, the CRM boots, and the field
+surface opens. Your queued writes are durable — confirm it from the sync
+badge and the sync centre, and if you want to be certain, from
+`Application → IndexedDB` in DevTools.
+
+**What you will NOT see is the trip itself.** The manager's trip list is read
+live and is not persisted to the snapshot store, so after an offline reload you
+land on an offline placeholder and cannot navigate back into the departure to
+look at your work. The writes are there and they drain on reconnect — step 5
+and step 6 will show you that — but you cannot *see* them offline.
+
+We know. It is the most interesting open question in this whole exercise, so
+tell us how it reads to you: as an acceptable limit of a first offline release,
+or as the promise not being kept. Say which, and why.
+
+If a write is genuinely **lost** — gone from the outbox after the reload, or
+never landing at step 6 — that is the severe bug above and unaffected by any of
+this. Report it immediately.
 
 ### Finally
 

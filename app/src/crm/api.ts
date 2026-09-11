@@ -95,6 +95,44 @@ export function fetchTravellers(signal?: AbortSignal): Promise<TravellersRespons
   return get(CRM_API.travellers, signal);
 }
 
-export function fetchStaff(signal?: AbortSignal): Promise<StaffResponse> {
-  return get(CRM_API.staff, signal);
+/**
+ * The staff roster, with a last-known-good fallback — the ONE read in this file
+ * that survives having no network, because it is the one that gates the whole
+ * app.
+ *
+ * `App.tsx` fetches the roster once at boot and renders an error page if it
+ * fails, so without this a reload with the network off stops at "Could not
+ * reach the Sharma Travels server" and no route renders at all — including the
+ * Kaafil ones. That made milestone 10's "reload the page, still offline" step
+ * impossible to reach even with the app shell in `app/public/sw.js` doing its
+ * job, and the wall had nothing to do with Kaafil: a manager's queued writes
+ * were sitting intact in IndexedDB behind a CRM that would not boot.
+ *
+ * Deliberately narrow. Only this route caches, only a status-0 failure (the
+ * request never completed) falls back, and a real HTTP error still surfaces —
+ * a 500 from a running server is a bug to see, not to paper over with a stale
+ * roster. The other screens are desk screens; they can say "offline" honestly.
+ */
+const ROSTER_CACHE_KEY = 'sharma-travels.roster.last-known-good';
+
+export async function fetchStaff(signal?: AbortSignal): Promise<StaffResponse> {
+  try {
+    const fresh = await get<StaffResponse>(CRM_API.staff, signal);
+    try {
+      localStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(fresh));
+    } catch {
+      // A full or disabled localStorage costs the offline boot, nothing else.
+    }
+    return fresh;
+  } catch (cause) {
+    if (!(cause instanceof CrmApiError) || cause.status !== 0) throw cause;
+    let cached: string | null = null;
+    try {
+      cached = localStorage.getItem(ROSTER_CACHE_KEY);
+    } catch {
+      cached = null;
+    }
+    if (cached === null) throw cause;
+    return JSON.parse(cached) as StaffResponse;
+  }
 }
