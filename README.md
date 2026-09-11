@@ -140,6 +140,23 @@ mapped, and you will make the same kind of calls.
 
 ---
 
+## Your work stays local — do not push to this repo
+
+`main` is protected and you will be refused if you try. That is deliberate,
+and it is not about trust: every QA works from the same starting state, and
+one person's integration landing here would change what the next person
+clones and make their timings meaningless.
+
+So just work in your clone and leave it there. Commit locally as much as
+you like. If you want to show us code, zip the repo or push it to a repo of
+your own and send the link — do not open a PR here.
+
+The one exception is a genuine fix to the handoff itself (a broken command,
+a wrong path in the docs). Tell us and we will make the change centrally,
+so everyone picks it up.
+
+---
+
 ## Telling us how it went
 
 Send the output of `pnpm milestone report` along with the debrief in
