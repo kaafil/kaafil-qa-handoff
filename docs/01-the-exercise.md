@@ -230,9 +230,20 @@ suit Kaafil is cheating, and it also quietly hides the theming problems we most
 want to find. If you genuinely cannot proceed without touching a CRM file, that
 is a finding — note it, then do the smallest change you can and say what it was.
 
-**All your code goes in `app/src/kaafil/`,** which is empty on purpose, plus the
-one line that wires your route into the CRM's router and the one
-`import 'kaafil-react-uikit/styles'` in the entry file.
+**All your code goes in `app/src/kaafil/`,** which is empty on purpose, plus
+three small wires into the CRM that we expect and that do not count as
+modifying it:
+
+1. the route registration in the CRM's router,
+2. the single `import 'kaafil-react-uikit/styles'` in the entry file,
+3. **nav entries in `app/src/crm/Shell.tsx`** so a human can actually reach
+   what you built.
+
+That third one was missing from an earlier version of these rules, and it made
+them self-contradictory: registering a `<Route>` makes a URL resolve, it does
+not put a door in the UI, and the nav lives in a CRM file. Following the rules
+literally shipped an integration nobody could click to. Keep the nav change to
+the entries themselves — adding links is wiring; restyling the sidebar is not.
 
 **The API key stays on the server.** Session minting always goes through a CRM
 route. If you ever find yourself wanting the key in the browser, you have taken
