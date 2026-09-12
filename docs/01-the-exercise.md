@@ -288,20 +288,25 @@ getting right, and worth saying in your report if they bit you:
 
 ### What step 4 actually looks like right now
 
-With both in place: the page reloads offline, the CRM boots, and the field
-surface opens. Your queued writes are durable — confirm it from the sync
-badge and the sync centre, and if you want to be certain, from
+With both in place: the page reloads offline, the CRM boots, the field surface
+opens, your trip list is there, you can open the departure, and its screens
+render what they last knew — the checklist with its sections, its progress
+figure and every item.
+
+**One thing does not work yet, and it is worth knowing before you call it a
+bug.** An item you CREATE while offline does not appear in the list until it
+syncs. It is queued, it is durable, it survives the reload, and it lands the
+moment you reconnect — the sync badge is what tells you it exists in the
+meantime. Edits and toggles of items that already existed do show immediately;
+only a brand-new row is invisible, because the surface has no server-assigned
+id to render it under until the write comes back.
+
+So at step 4, judge your work by the sync badge and the sync centre rather than
+by the list, and if you want to be certain, look at
 `Application → IndexedDB` in DevTools.
 
-**What you will NOT see is the trip itself.** The manager's trip list is read
-live and is not persisted to the snapshot store, so after an offline reload you
-land on an offline placeholder and cannot navigate back into the departure to
-look at your work. The writes are there and they drain on reconnect — step 5
-and step 6 will show you that — but you cannot *see* them offline.
-
-We know. It is the most interesting open question in this whole exercise, so
-tell us how it reads to you: as an acceptable limit of a first offline release,
-or as the promise not being kept. Say which, and why.
+Tell us how that reads to you — as an acceptable limit, or as the promise not
+being kept. It is the most interesting open question left in this exercise.
 
 If a write is genuinely **lost** — gone from the outbox after the reload, or
 never landing at step 6 — that is the severe bug above and unaffected by any of
