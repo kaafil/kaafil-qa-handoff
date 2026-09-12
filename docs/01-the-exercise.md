@@ -293,20 +293,18 @@ opens, your trip list is there, you can open the departure, and its screens
 render what they last knew — the checklist with its sections, its progress
 figure and every item.
 
-**One thing does not work yet, and it is worth knowing before you call it a
-bug.** An item you CREATE while offline does not appear in the list until it
-syncs. It is queued, it is durable, it survives the reload, and it lands the
-moment you reconnect — the sync badge is what tells you it exists in the
-meantime. Edits and toggles of items that already existed do show immediately;
-only a brand-new row is invisible, because the surface has no server-assigned
-id to render it under until the write comes back.
+That includes work you CREATE offline — a new checklist item appears the
+moment you add it, survives the reload, and is swapped for the server's own
+row when it lands, so it is never shown twice. Nothing about the screen should
+tell you whether you were connected when you did it.
 
-So at step 4, judge your work by the sync badge and the sync centre rather than
-by the list, and if you want to be certain, look at
-`Application → IndexedDB` in DevTools.
+So judge step 4 by the screen. If something you did offline is missing from
+it, that is a bug and we want it — not a limitation to work around.
 
-Tell us how that reads to you — as an acceptable limit, or as the promise not
-being kept. It is the most interesting open question left in this exercise.
+The sync badge and the sync centre are still worth watching, because they are
+what tell you the difference between "saved here" and "landed there", and
+`Application → IndexedDB` in DevTools is the ground truth if you want to be
+certain.
 
 If a write is genuinely **lost** — gone from the outbox after the reload, or
 never landing at step 6 — that is the severe bug above and unaffected by any of
