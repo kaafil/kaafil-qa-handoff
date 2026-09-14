@@ -114,6 +114,14 @@ surfaces, and record how close it gets you. Then keep going with whatever else
 you need — and *keep a list of every token beyond the twelve that you needed*,
 and of every place you had to reach past tokens entirely.
 
+When you need a thirteenth token, look it up in the **token reference**
+(`/docs/ui-kit/customization/tokens` on the developer portal): every defined
+token, its default, and the file it comes from. Do not grep the compiled
+`dist/index.css` — it mixes the 434 real tokens with ~2,390 deliberately
+undefined per-component override hooks, which is what made the surface look
+like an unusable 2,800-name list. That reference exists because an earlier run
+of this exercise had no choice but to grep.
+
 > **The line that matters:** writing `--kf-accent: #1a4f8a` is theming working.
 > Writing `.kf-manager-fab { background: #1a4f8a }` is theming **not** working.
 > The second one is legal and will not break, but each time you do it you have
