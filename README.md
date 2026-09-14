@@ -38,7 +38,7 @@ Node 20.11+ and pnpm. Nothing else — no Docker, no database to run.
 
 ### Step two — get an API key
 
-Sign in to the partner console at **<https://platform.kaafil.in>** with the
+Sign in to the partner console at **<https://console.kaafil.in>** with the
 account you were given, then **API keys** in the left nav → **Create key**.
 Copy the secret at creation time; it is shown exactly once.
 

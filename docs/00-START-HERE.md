@@ -121,7 +121,7 @@ Node 20.11 or newer, and pnpm. Nothing else.
 
 ### Step two — get an API key
 
-Go to the partner console at **<https://platform.kaafil.in>** and sign in with
+Go to the partner console at **<https://console.kaafil.in>** and sign in with
 the account you were given. Then:
 
 > **API keys** in the left nav → **Create key**

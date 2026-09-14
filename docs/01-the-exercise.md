@@ -78,8 +78,9 @@ does not exist.
 Three rules about importing that will save you an hour:
 
 - **There is no bare `kaafil-react-uikit` import.** Only the subpaths:
-  `/core`, `/manager`, `/admin`, `/traveller`, `/styles`, `/testing`. If you
-  write `from 'kaafil-react-uikit'` it will simply not resolve.
+  `/core`, `/manager`, `/admin`, `/traveller`, `/offline`, `/styles`,
+  `/testing`. If you write `from 'kaafil-react-uikit'` it will simply not
+  resolve.
 - **`import 'kaafil-react-uikit/styles'` exactly once**, in your app entry. The
   CSS is opt-in and never injects itself — that is so it cannot fight with the
   CRM's own stylesheet behind your back.
@@ -121,7 +122,7 @@ code.
 
 **4 — Trips visible in Kaafil.**
 The boot ingest completed and you have confirmed it from the *other* side — log
-in to <https://platform.kaafil.in> and see Sharma Travels' departures, their
+in to <https://console.kaafil.in> and see Sharma Travels' departures, their
 manifests, and their assigned staff in your own tenant. Confirming it in the
 console rather than trusting the server log is the point; you are checking that
 the data actually landed.
