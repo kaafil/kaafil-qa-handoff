@@ -147,6 +147,11 @@ and what the choice costs you, so the decision at least stops being accidental.
 > `TEST_TRIP_LIMIT`. Worse, `pnpm reset:kaafil` plants one fixture trip of
 > Kaafil's own first, which leaves **four** free slots.
 >
+> The ceiling is set per tenant when your partner account is created, so it is
+> five for the account you were given. Kaafil's own shared demo tenant is
+> uncapped — if you ever see a trip count well past five in a console
+> screenshot, that is why, and it is not the number your own sandbox uses.
+>
 > This is a real product limit, not a broken seed, and we have left it in place
 > rather than papering over it. What the repo does instead is push the
 > departures in order of how much the exercise needs them, so everything

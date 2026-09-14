@@ -53,10 +53,16 @@
  *
  * ── THE SANDBOX TRIP CAP ───────────────────────────────────────────────────
  *
- * A TEST-plane tenant holds at most FIVE trips; the sixth `trips.upsert` that
- * CREATES a trip is refused with `TEST_TRIP_LIMIT`. This fixture has six
- * departures, and `pnpm reset:kaafil` plants one fixture trip of Kaafil's own
- * first — so after a reset there are four free slots, not five.
+ * A sandbox minted for a partner account holds FIVE trips; the sixth
+ * `trips.upsert` that CREATES a trip is refused with `TEST_TRIP_LIMIT`. This
+ * fixture has six departures, and `pnpm reset:kaafil` plants one fixture trip
+ * of Kaafil's own first — so after a reset there are four free slots, not five.
+ *
+ * "Minted for a partner account" is the precise claim, not "any test key": the
+ * ceiling is a per-tenant column, and Kaafil's own shared demo tenant is
+ * deliberately uncapped. If you are on that one you will see all six land and
+ * none of this applies to you — which is also why the partner console can show
+ * a trip count well past five without contradicting any of it.
  *
  * That is a real product limit, not a bug to route around, so the ingest does
  * the one thing it can: it pushes in SCENARIO-CRITICALITY order (see
