@@ -40,6 +40,29 @@
  * the second ingest pushes the identical stamps, so Kaafil answers `200` with
  * `verdict: 'ignored_stale'` rather than rewriting rows. That is the check
  * working, not a failure — this file says so out loud when it happens.
+ *
+ * ── AN INVARIANT THE COMPILER NO LONGER HOLDS FOR US ───────────────────────
+ *
+ * `sourceUpdatedAt` used to be required on every upsert, so dropping one was a
+ * type error. As of `kaafil-js@0.5.0` it is OPTIONAL on manifest entries (and
+ * on `vendors.upsert`) — omit it and the SERVER stamps its own clock, which is
+ * precisely the "every push looks like the newest truth" failure above. So the
+ * manifest push below still passes it deliberately, and deleting that line
+ * would now typecheck cleanly while silently defeating the staleness check.
+ * The rule is ours to hold now, not the compiler's.
+ *
+ * ── THE SANDBOX TRIP CAP ───────────────────────────────────────────────────
+ *
+ * A TEST-plane tenant holds at most FIVE trips; the sixth `trips.upsert` that
+ * CREATES a trip is refused with `TEST_TRIP_LIMIT`. This fixture has six
+ * departures, and `pnpm reset:kaafil` plants one fixture trip of Kaafil's own
+ * first — so after a reset there are four free slots, not five.
+ *
+ * That is a real product limit, not a bug to route around, so the ingest does
+ * the one thing it can: it pushes in SCENARIO-CRITICALITY order (see
+ * `INGEST_PRIORITY`), so the departures the exercise actually names survive
+ * the cap and the least load-bearing ones are the ones refused. The refusal is
+ * collected like any other failure and explained at the end of the run.
  */
 
 import { isKaafilError, type Kaafil } from 'kaafil-js';
@@ -192,6 +215,55 @@ function zonedInstant(date: IsoDate, timeZone: string, clockTime: '00:00:00' | '
   const label = parts.find((part) => part.type === 'timeZoneName')?.value ?? 'GMT';
   const offset = label.slice(3) === '' ? '+00:00' : label.slice(3);
   return `${date}T${clockTime}${offset}`;
+}
+
+// ---------------------------------------------------------------------------
+// Trip ingest order — see "THE SANDBOX TRIP CAP" in this file's header
+// ---------------------------------------------------------------------------
+
+/**
+ * Which departures matter most, when the sandbox cap means not all six land.
+ *
+ * Deliberately declared HERE and not by reordering `fixtures/core.ts`: that
+ * array is Sharma Travels' own book of business and the CRM's screens read it,
+ * so reordering it would change what a human sees in the trip list for a
+ * reason that has nothing to do with the CRM. The constraint is Kaafil's, so
+ * the ordering lives next to the Kaafil call.
+ *
+ * The ranking is by what the exercise NAMES BY REF, not by what looks
+ * interesting:
+ *
+ *   SPITI      milestones 6 and 10 — the only mid-tour departure, and the one
+ *              the offline test is written against.
+ *   MEGHALAYA  milestone 7 and §4 — the cancelled trip. Also the regression
+ *              guard for the worst finding of the last QA round, when it read
+ *              "Upcoming · Starts in 5 days".
+ *   KERALA     milestone 7 and all of §5 — the closed-out trip, so the only
+ *              way to exercise the 423 lock.
+ *   LADAKH     milestone 5's desk manifest; the clean pre-departure case.
+ *   RISHIKESH  §7's money checks. Lands on a fresh sandbox, not a reset one.
+ *   HAMPTA     the deliberate sacrifice — a trek with walk-ins, named by no
+ *              milestone.
+ *
+ * Anything absent from this list sorts last, in fixture order, so adding a
+ * departure to the fixtures never silently displaces a ranked one.
+ */
+const INGEST_PRIORITY: readonly string[] = [
+  'TR-2609-SPITI',
+  'TR-2609-MEGHALAYA',
+  'TR-2608-KERALA',
+  'TR-2610-LADAKH',
+  'TR-2610-RISHIKESH',
+  'TR-2609-HAMPTA',
+];
+
+function orderedTours(tours: readonly CrmTour[]): CrmTour[] {
+  const rank = (tour: CrmTour): number => {
+    const at = INGEST_PRIORITY.indexOf(tour.tourId);
+    return at === -1 ? INGEST_PRIORITY.length : at;
+  };
+  // A stable sort, so unranked departures keep their fixture order.
+  return [...tours].sort((a, b) => rank(a) - rank(b));
 }
 
 // ---------------------------------------------------------------------------
@@ -353,7 +425,7 @@ export async function runIngest(kaafil: Kaafil, options: IngestOptions): Promise
     `4/7 Trips. Pushing ${fixture.tours.length} departures. Note the verb: creating a trip in ` +
       `Kaafil is an upsert on YOUR id for it, so re-pushing is how you send a change.`,
   );
-  for (const tour of fixture.tours) {
+  for (const tour of orderedTours(fixture.tours)) {
     try {
       await kaafil.trips.upsert({
         // Your id for the departure. It is the trip's identity from here on:
@@ -527,6 +599,31 @@ export async function runIngest(kaafil: Kaafil, options: IngestOptions): Promise
           `${failure.requestId === undefined ? '' : ` · requestId ${failure.requestId}`}`,
       );
       log(`        ${failure.message}`);
+    }
+    // The one refusal that is EXPECTED rather than a fault, and which reads
+    // like a bug if nobody says so: the sandbox's five-trip cap. Left as a
+    // bare code it looks like a broken seed, and the QA goes hunting.
+    if (failures.some((failure) => failure.code === 'TEST_TRIP_LIMIT')) {
+      const refused = failures
+        .filter((failure) => failure.code === 'TEST_TRIP_LIMIT')
+        .map((failure) => failure.subject);
+      log('');
+      log(
+        `    ^ TEST_TRIP_LIMIT is the sandbox's own ceiling, not a broken seed. A kf_test_ ` +
+          `tenant holds FIVE trips; this fixture has six, and pnpm reset:kaafil plants one ` +
+          `fixture trip of Kaafil's own first, which leaves four. Refused here: ` +
+          `${refused.join(', ')}.`,
+      );
+      log(
+        `    Trips are pushed most-important-first, so the departures the milestones name ` +
+          `land ahead of the ones they do not. Everything you need for milestones 5, 6, 7 ` +
+          `and 10 is in your tenant. What you lose is noted in docs/01-the-exercise.md.`,
+      );
+      log(
+        `    A kf_live_ key has no such cap, and is the only way to run pnpm seed:bulk — ` +
+          `see the Volume bullet in docs/02-what-to-look-for.md §7.`,
+      );
+      log('');
     }
     log(
       `Quote a requestId if you raise one of these with Kaafil. Fix the cause and restart the ` +

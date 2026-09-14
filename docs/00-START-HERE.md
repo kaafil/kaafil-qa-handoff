@@ -136,11 +136,26 @@ Keys come in two flavours and the prefix tells you which:
 
 | Prefix | What it means |
 |---|---|
-| `kf_test_` | Sandbox. Recommended. You get a controllable clock and can rebuild your fixture data whenever you like. |
-| `kf_live_` | Real. Also fine, and we will not stop you — but there is no sandbox clock, no fixture rebuild, and the sandbox-only endpoints return `404`. |
+| `kf_test_` | Sandbox. Recommended. You get a controllable clock and can rebuild your fixture data whenever you like. **Capped at 5 trips and 50 travellers per trip.** |
+| `kf_live_` | Real. Also fine, and we will not stop you — but there is no sandbox clock, no fixture rebuild, and the sandbox-only endpoints return `404`. No trip cap. |
 
 Either works for this exercise. The server prints which one it detected at boot
 and what the choice costs you, so the decision at least stops being accidental.
+
+> **The 5-trip cap is worth understanding before you hit it.** This fixture has
+> **six** departures, so on a sandbox key the last one is refused with
+> `TEST_TRIP_LIMIT`. Worse, `pnpm reset:kaafil` plants one fixture trip of
+> Kaafil's own first, which leaves **four** free slots.
+>
+> This is a real product limit, not a broken seed, and we have left it in place
+> rather than papering over it. What the repo does instead is push the
+> departures in order of how much the exercise needs them, so everything
+> milestones 5, 6, 7 and 10 name still lands. The ingest says out loud which
+> trips it lost. See [01-the-exercise.md](./01-the-exercise.md) for exactly
+> what that costs you, and note it in your report if it got in your way.
+>
+> One thing the cap genuinely blocks: **`pnpm seed:bulk` needs a `kf_live_`
+> key.** It seeds 50 departures.
 
 ### Step three — the .env file
 

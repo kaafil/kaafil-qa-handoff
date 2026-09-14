@@ -121,10 +121,29 @@ code.
 
 **4 — Trips visible in Kaafil.**
 The boot ingest completed and you have confirmed it from the *other* side — log
-in to <https://platform.kaafil.in> and see Sharma Travels' six departures,
-their manifests, and their assigned staff in your own tenant. Confirming it in
-the console rather than trusting the server log is the point; you are checking
-that the data actually landed.
+in to <https://platform.kaafil.in> and see Sharma Travels' departures, their
+manifests, and their assigned staff in your own tenant. Confirming it in the
+console rather than trusting the server log is the point; you are checking that
+the data actually landed.
+
+**Expect five, not six — or four after a reset.** A sandbox tenant holds five
+trips, and `pnpm reset:kaafil` plants one of Kaafil's own fixture trips before
+yours. The ingest pushes most-important-first and tells you which departures it
+could not fit. In priority order:
+
+| Departure | What it is for | Survives a reset? |
+|---|---|---|
+| `TR-2609-SPITI` | milestones 6 and 10 — the only mid-tour departure | yes |
+| `TR-2609-MEGHALAYA` | milestone 7 and §4 — the cancelled trip | yes |
+| `TR-2608-KERALA` | milestone 7 and §5 — the closed-out trip | yes |
+| `TR-2610-LADAKH` | milestone 5's desk manifest | yes |
+| `TR-2610-RISHIKESH` | §7's money checks | only on a fresh sandbox |
+| `TR-2609-HAMPTA` | a trek with walk-ins; no milestone needs it | no |
+
+So every milestone below is reachable on a sandbox key. What you may not get is
+`HAMPTA`'s trek surfaces and, after a reset, `RISHIKESH`'s balance-owing cases —
+use `MEGHALAYA`'s refunds for the money checks in that case, or a `kf_live_`
+key. If the cap cost you time, that is worth a line in your report.
 
 ### Integration — milestones 5 to 10
 
@@ -150,28 +169,33 @@ the SDK's browser entry:
 import { createIndexedDbStorageAdapter } from 'kaafil-js/client';
 ```
 
-`KaafilManagerApp` also takes **five required host callbacks**, and it will not
-compile without all five. `KaafilAgencyWorkspace` has none, so the asymmetry is
+`KaafilManagerApp` also takes **four required host callbacks**, and it will not
+compile without all four. `KaafilAgencyWorkspace` has none, so the asymmetry is
 invisible until the compiler tells you — here is the list up front, and what
 each one is actually for:
 
-| Prop | Fires when | What a `() => {}` costs you |
-|---|---|---|
-| `onNavigateModule(key)` | a Today card links to `manifest`, `rooming`, `checklist`, `docs` or `closing-day` | the card becomes a dead end — the UIKit ships no router (it never navigates for you), so the host owns every destination |
-| `onCollectFromGroup(groupId)` | a booking group's "Collect" CTA is tapped | same — there is no group-level collect endpoint, so the host resolves a group into whatever per-traveller flow it wants |
-| `onVendorSelect(tripVendorId)` | a vendor row is tapped | same — a dead row |
-| `onLogExpense()` | an expense has **already been written** by the surface's own sheet | only the host's toast/analytics. The write is not yours to do |
-| `onCollectPayment()` | a collection has **already been recorded** | same |
+| Prop | Required? | Fires when | What a `() => {}` costs you |
+|---|---|---|---|
+| `onCollectFromGroup(groupId)` | yes | a booking group's "Collect" CTA is tapped | the CTA becomes a dead end — there is no group-level collect endpoint, so the host resolves a group into whatever per-traveller flow it wants |
+| `onVendorSelect(tripVendorId)` | yes | a vendor row is tapped | same — a dead row |
+| `onLogExpense()` | yes | an expense has **already been written** by the surface's own sheet | only the host's toast/analytics. The write is not yours to do |
+| `onCollectPayment()` | yes | a collection has **already been recorded** | same |
+| `onNavigateModule(key)` | no | a Today card links to `manifest`, `rooming`, `checklist`, `docs` or `closing-day` | nothing visible. The surface navigates itself; this only mirrors it into your router/analytics |
 
 The two money ones read like they gate spending, and they do not: the FAB opens
 the UIKit's own sheet, which writes through `useExpenses()` / `useCollections()`
 and fires the callback *after* the write succeeds. They are completion hooks.
-The first three are the ones where a stub silently breaks a manager's flow, so
-wire those to something real before you judge the surface.
+`onCollectFromGroup` and `onVendorSelect` are the two where a stub silently
+breaks a manager's flow, so wire those to something real before you judge the
+surface.
 
-They are required rather than defaulted because each forwards to a child
-composite's own required prop, and the surface will not stub a child's required
-callback behind a no-op on your behalf.
+The four are required rather than defaulted because each forwards to a child
+composite's own required prop **that the surface has no internal handler for**,
+and the surface will not stub a child's required callback behind a no-op on
+your behalf. `onNavigateModule` used to be in that list and no longer is: the
+surface maps each module key onto a real tab and performs the navigation
+itself, so the callback is a mirror rather than the mechanism. If you are on an
+older version where it is required, a `() => {}` there is harmless.
 
 Done also means you have **no console errors and no console warnings** at
 steady state. A clean console is a product requirement, not a nicety — if you
@@ -252,11 +276,33 @@ get to it.
 
 Closing that gap is a service worker, and it belongs to the host, because it
 has to cache **your** build output under **your** deploy and revalidation
-strategy. The kit ships none and registers nothing, deliberately. Sharma
-Travels has one at `app/public/sw.js`, registered from `app/src/main.tsx` —
-read it, it is about sixty lines, and it is the whole of what the kit is
-asking you to own. A real CRM would generate a better one from a config line
-(`vite-plugin-pwa`, `next-pwa`, anything on Workbox).
+strategy. The kit registers nothing, deliberately. Sharma Travels has one at
+`app/public/sw.js`, registered from `app/src/main.tsx` — read it, it is about
+sixty lines, and it is the whole of what the kit is asking you to own. A real
+CRM would generate a better one from a config line (`vite-plugin-pwa`,
+`next-pwa`, anything on Workbox).
+
+What the kit *does* ship is the Kaafil-specific half of the fetch policy, for
+you to compose with your own precache manifest:
+
+```ts title="src/sw.ts"
+import { installKaafilOfflineShell } from 'kaafil-react-uikit/offline';
+
+installKaafilOfflineShell({
+  cacheName: 'sharma-shell-v1',
+  appShellUrl: '/index.html',
+  precache: self.__WB_MANIFEST.map((e) => e.url),
+});
+```
+
+It never handles a non-GET (the outbox owns retries, and a worker that replays
+a POST is a second retry engine racing the first), never caches a Kaafil API
+response, and falls navigations back to the cached shell.
+
+**There is no separate step for caching Kaafil's own CSS and JS.** This package
+is bundled into your build, so its assets *are* part of the output your
+precache manifest already covers. If you find yourself looking for a Kaafil
+asset URL to allow, stop — there isn't one.
 
 This is pre-existing CRM infrastructure, like the login screen and the
 stylesheet — not something you have to build. Sharma Travels' own staff-roster
@@ -277,14 +323,33 @@ token lives, how long it is kept and what clears it are host security
 decisions, not a design system's.
 
 So cache the minted credential and fall back to it when the mint call cannot
-complete. Roughly thirty lines around your existing resolver. Two things worth
-getting right, and worth saying in your report if they bit you:
+complete. Two things worth getting right, and worth saying in your report if
+they bit you:
 
 - Fall back only when the request **never completed**. A 401 or a 500 from a
   reachable server is a real failure and must still surface.
 - A cached access token still expires, and offline it cannot be refreshed. A
   manager who has been offline longer than the token's life will not get in.
   Note how long that window turned out to be.
+
+The kit ships an opt-in helper for exactly this — it owns the sequence and
+leaves the storage to you, because where a token lives is your decision:
+
+```ts
+import { withCachedCredential, localStorageCredentialStore }
+  from 'kaafil-react-uikit/offline';
+
+const resolver = withCachedCredential(
+  () => fetch('/api/admin-session', { method: 'POST' }).then((r) => r.json()),
+  { store: localStorageCredentialStore('sharma:desk') },
+);
+```
+
+Using it is fine and so is writing your own — it is about thirty lines. **Tell
+us which you did and why**, because whether a helper like this is worth
+shipping at all is one of the things this round is measuring. If you wrote your
+own, we especially want to know whether you got the first bullet right before
+reading it here.
 
 ### What step 4 actually looks like right now
 

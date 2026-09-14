@@ -104,8 +104,8 @@ actually goes.
 | | |
 |---|---|
 | `pnpm dev` | CRM + server. Wipes SQLite, re-seeds, ingests into Kaafil |
-| `pnpm seed:bulk` | ~50 more tours, to stress lists and pagination |
-| `pnpm reset:kaafil` | Rebuild your Kaafil tenant to pristine (test keys only) |
+| `pnpm seed:bulk` | 50 more tours, to stress lists and pagination. **Live keys only** — a sandbox tenant is capped at 5 trips |
+| `pnpm reset:kaafil` | Rebuild your Kaafil tenant to pristine (test keys only). Costs you one of your 5 sandbox trip slots |
 | `pnpm milestone …` | Stamp progress, print the report |
 | `pnpm typecheck` | Both halves |
 | `pnpm lint` | Biome |

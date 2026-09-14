@@ -117,7 +117,7 @@ and of every place you had to reach past tokens entirely.
 When you need a thirteenth token, look it up in the **token reference**
 (`/docs/ui-kit/customization/tokens` on the developer portal): every defined
 token, its default, and the file it comes from. Do not grep the compiled
-`dist/index.css` — it mixes the 434 real tokens with ~2,390 deliberately
+`dist/index.css` — it mixes the 436 real tokens with ~2,390 deliberately
 undefined per-component override hooks, which is what made the surface look
 like an unusable 2,800-name list. That reference exists because an earlier run
 of this exercise had no choice but to grep.
@@ -132,7 +132,13 @@ of this exercise had no choice but to grep.
 
 - **Density.** The provider takes `density: 'compact' | 'default' | 'comfortable'`.
   Sharma Travels has tight rows; see whether `compact` matches them, and by how
-  much it misses.
+  much it misses. If it is not tight enough, the token to reach for is
+  **`--kf-density-row-padding-block`** — *not* `--kf-density-row-height`, which
+  only sets a floor and so can make a row taller but never shorter. Note that a
+  manifest row bottoms out around 36px whatever you do, because that is an
+  avatar beside two lines of identity; below that you are changing what the row
+  shows, not its spacing. `--kf-density-gap` is defined but read by nothing
+  today, and we would rather you knew than discovered it.
 - **Dark mode.** `theme: 'light' | 'dark' | 'system'`. The CRM is light-only.
   Check that `system` does not hand a dark Kaafil panel to someone using a light
   CRM on a dark-mode laptop.
@@ -253,7 +259,10 @@ it. Two things worth knowing before filing a bug against it:
   ```
 
   Set it. A raw UUID where an operator expects a sendable link is exactly the
-  confusion the last round reported.
+  confusion the last round reported. If you have not, the dialog now says so in
+  as many words — it calls the value a code rather than a link and points at the
+  missing setup — and the console carries a development-only warning naming the
+  prop. Both are deliberate; neither appears once `buildShareUrl` is set.
 
 ### A cancelled trip's link stays alive and says so
 
@@ -349,7 +358,9 @@ While you are in there:
 - **Money.** Everything is integer paise internally. Check the rupee formatting
   — grouping, symbol, negatives, refunds, zero. `TR-2609-MEGHALAYA` has refunds
   and outstanding balances; `TR-2610-RISHIKESH` has three bookings with a
-  balance owing.
+  balance owing. Note that `RISHIKESH` is the first departure lost to the
+  sandbox's 5-trip cap after a `pnpm reset:kaafil` — if it is not in your
+  tenant, use `MEGHALAYA` for these checks.
 - **Dates and times.** Each trip carries its **own** timezone, not the
   viewer's. A Ladakh departure viewed from a laptop set to UTC must still show
   Ladakh times. Change your machine's timezone and look again.
@@ -357,6 +368,10 @@ While you are in there:
   and look for untranslated strings or layouts that break on longer text.
 - **Volume.** Run `pnpm seed:bulk` and go back to the desk console. Do the
   lists stay usable? Does pagination hold? Does the browser stay responsive?
+  **This needs a `kf_live_` key** — it seeds 50 departures and a sandbox tenant
+  is capped at 5, so on a test key every one of them is refused. If you only
+  have a sandbox key, say so in your report and skip this rather than reading
+  the refusals as a bug.
 - **Keyboard and screen reader.** Tab all the way through the desk console. Can
   you reach everything? Is focus visible? Does anything trap you?
 - **Small screens.** The manager surface is for a phone. Use one, or emulate
