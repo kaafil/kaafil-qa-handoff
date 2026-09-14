@@ -25,8 +25,8 @@
   "comment:secrets": "KAAFIL_API_KEY is read by `tsx --env-file=.env` in the server/tooling scripts only. `vite app` is started without it, so there is no path by which the key can reach a browser bundle.",
   "dependencies": {
     "better-sqlite3": "^11.8.1",
-    "kaafil-js": "0.1.0-beta.7",
-    "kaafil-react-uikit": "0.1.0-beta.1",
+    "kaafil-js": "0.4.0",
+    "kaafil-react-uikit": "0.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"
