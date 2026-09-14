@@ -15,8 +15,8 @@ importers:
         specifier: 0.5.0
         version: 0.5.0
       kaafil-react-uikit:
-        specifier: 0.5.0
-        version: 0.5.0(kaafil-js@0.5.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        specifier: 0.6.0
+        version: 0.6.0(kaafil-js@0.5.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: ^19.0.0
         version: 19.3.0
@@ -893,8 +893,8 @@ packages:
     resolution: {integrity: sha512-sw+ePBTJ9nXFnf31UF7IjRsErdNA2zqvpLChgWzAp8A5PQzV0aDeImN3zjknqJvEmX1qUDGS8QKwclgspNg3FQ==}
     engines: {node: '>=20.11'}
 
-  kaafil-react-uikit@0.5.0:
-    resolution: {integrity: sha512-Iau1f26emvZYAYR/OLoaCB4985gzJWuzLwH8jLNOTe9ddjgQktm66GHxh2Ea5oYiLH2vAFDjlKIKtJ1tfzW32g==}
+  kaafil-react-uikit@0.6.0:
+    resolution: {integrity: sha512-d/tqOrShV9KrqL3sjyF76mEU5xDa66tPhT/vWU1Ut2Uz+rmm/VPuB0YUI23fksjnb/YYfCNjDW/DrPrUAzkHYw==}
     engines: {node: '>=20.11'}
     peerDependencies:
       kaafil-js: ^0.5.0
@@ -1812,7 +1812,7 @@ snapshots:
 
   kaafil-js@0.5.0: {}
 
-  kaafil-react-uikit@0.5.0(kaafil-js@0.5.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
+  kaafil-react-uikit@0.6.0(kaafil-js@0.5.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       kaafil-js: 0.5.0
       react: 19.3.0
