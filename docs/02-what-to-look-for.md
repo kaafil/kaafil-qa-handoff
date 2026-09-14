@@ -230,12 +230,47 @@ What to test:
 - Use `renderSection` to replace a section with your own component. Was the
   data you were handed enough to render something real?
 - Try a link for a cancelled trip (`TR-2609-MEGHALAYA`) and for a closed-out
-  one (`TR-2608-KERALA`).
+  one (`TR-2608-KERALA`). See the cancelled-trip note below for what to expect.
 
-### A share link that shows nothing may be correct
+### The share dialog shows an address, not just a token
 
-When a share link should not be readable — revoked, expired, trip cancelled,
-consent withdrawn — Kaafil deliberately renders a plain **404-shaped** page.
+On the desk, **Show link** displays an existing link again so you can re-send
+it. Two things worth knowing before filing a bug against it:
+
+- A link minted **before** this shipped says so plainly and points at Replace.
+  That is correct, not a failure — only a hash was ever stored for those, so
+  the address genuinely cannot be recovered.
+- What the dialog shows is a bare token like
+  `c43df6bd-ec4a-4ea3-aedf-acb3837d3358` **unless your integration sets
+  `buildShareUrl`** on `KaafilUIKitProvider` — Kaafil returns a token, never a
+  URL, because the traveller page is on *your* domain:
+
+  ```tsx
+  <KaafilUIKitProvider
+    buildShareUrl={(token) => `${window.location.origin}/share/${token}`}
+    {...rest}
+  />
+  ```
+
+  Set it. A raw UUID where an operator expects a sendable link is exactly the
+  confusion the last round reported.
+
+### A cancelled trip's link stays alive and says so
+
+Expect **"This trip was called off"** and nothing else — no itinerary, no
+rooming, no balance, and no forms to fill in. A cancelled trip's links are not
+revoked; every section on them is switched off while the link itself keeps
+working, so a family who opens the link they were sent learns *why* rather than
+hitting a dead page and phoning the agency.
+
+`TR-2609-MEGHALAYA` is the case to check. It previously showed **"Upcoming ·
+Starts in 5 days"**, a countdown to a departure that was not happening — the
+most serious finding of the last round.
+
+### A share link that shows nothing may still be correct
+
+When a share link should not be readable — revoked, expired, consent
+withdrawn — Kaafil deliberately renders a plain **404-shaped** page.
 No heading, no explanation, no "this link has expired", no divider or gap where
 something used to be. Nothing that distinguishes "this link was turned off"
 from "this URL never existed".
